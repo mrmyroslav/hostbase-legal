@@ -23,6 +23,17 @@
   .pending { background:#FEF3C7; color:#92400E; }
   .cancelled { background:#F1F5F9; color:#64748B; }
   .desc { margin-top:18px; font-size:14px; line-height:1.65; color:#4B5563; white-space:pre-wrap; }
+  .block { border-top:1px solid #F1F5F9; padding:18px 0 4px; }
+  .block h2 { font-size:14px; margin:0 0 8px; text-transform:uppercase; letter-spacing:.4px; color:#6B7280; }
+  .block p { margin:0 0 10px; font-size:14.5px; line-height:1.65; white-space:pre-wrap; }
+  .btn { display:inline-block; background:#4F46E5; color:#fff; text-decoration:none;
+         padding:11px 18px; border-radius:10px; font-size:14px; font-weight:600; margin:2px 6px 6px 0; }
+  .btn.ghost { background:#EEF2FF; color:#4F46E5; }
+  .kv { display:flex; justify-content:space-between; gap:14px; font-size:14.5px; padding:7px 0; }
+  .kv .k { color:#6B7280; }
+  .kv .v { font-weight:600; text-align:right; word-break:break-all; }
+  .locked { background:#FEF3C7; color:#92400E; border-radius:10px; padding:13px 14px;
+            font-size:13.5px; line-height:1.55; margin-top:18px; }
   .state { max-width:460px; margin:60px auto; text-align:center; color:#6B7280; font-size:15px; line-height:1.6; }
   .brand { max-width:460px; margin:22px auto 0; text-align:center; font-size:12.5px; color:#9CA3AF; }
 </style>
@@ -70,6 +81,77 @@ function showState(text) {
   document.getElementById('root').innerHTML = '<div class="state">' + escapeHtml(text) + '</div>';
 }
 
+// Гид приходит уже очищенным: выключенные блоки и — до открытия доступа —
+// адрес, маршрут, Wi-Fi и код вырезаны на сервере (см. guest_guide_public в
+// SQL). Здесь просто рисуем то, что дошло, без всяких проверок прав.
+function block(title, inner) {
+  return '<div class="block"><h2>' + escapeHtml(title) + '</h2>' + inner + '</div>';
+}
+
+function kv(k, v) {
+  return '<div class="kv"><span class="k">' + escapeHtml(k) + '</span><span class="v">' + escapeHtml(v) + '</span></div>';
+}
+
+function renderGuide(g, accessOpen) {
+  var out = '';
+
+  if (g.address && (g.address.text || g.address.mapUrl)) {
+    var mapUrl = g.address.mapUrl
+      || (g.address.text ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(g.address.text) : '');
+    out += block('Адрес',
+      (g.address.text ? '<p>' + escapeHtml(g.address.text) + '</p>' : '') +
+      (mapUrl ? '<a class="btn" href="' + escapeHtml(mapUrl) + '" target="_blank" rel="noopener">Маршрут</a>' : ''));
+  }
+
+  if (g.directions && (g.directions.text || (g.directions.links || []).length)) {
+    out += block('Как добраться',
+      (g.directions.text ? '<p>' + escapeHtml(g.directions.text) + '</p>' : '') +
+      (g.directions.links || []).filter(function (l) { return l.url; }).map(function (l) {
+        return '<a class="btn ghost" href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener">' +
+          escapeHtml(l.label || 'Открыть') + '</a>';
+      }).join(''));
+  }
+
+  if (g.times && (g.times.checkIn || g.times.checkOut)) {
+    out += block('Заезд и выезд',
+      (g.times.checkIn ? kv('Заезд после', g.times.checkIn) : '') +
+      (g.times.checkOut ? kv('Выезд до', g.times.checkOut) : ''));
+  }
+
+  if (g.wifi && (g.wifi.name || g.wifi.password)) {
+    out += block('Wi-Fi',
+      (g.wifi.name ? kv('Сеть', g.wifi.name) : '') +
+      (g.wifi.password ? kv('Пароль', g.wifi.password) : ''));
+  }
+
+  if (g.doorCode && g.doorCode.code) {
+    out += block('Код доступа', '<p>' + escapeHtml(g.doorCode.code) + '</p>');
+  }
+
+  if (g.rules && g.rules.text) {
+    out += block('Правила дома', '<p>' + escapeHtml(g.rules.text) + '</p>');
+  }
+
+  if (g.contact && (g.contact.phone || g.contact.whatsapp)) {
+    out += block('Связаться с хозяином',
+      (g.contact.phone ? '<a class="btn" href="tel:' + escapeHtml(g.contact.phone) + '">Позвонить</a>' : '') +
+      (g.contact.whatsapp
+        ? '<a class="btn ghost" href="https://wa.me/' + escapeHtml(String(g.contact.whatsapp).replace(/[^0-9]/g, '')) +
+          '" target="_blank" rel="noopener">WhatsApp</a>'
+        : ''));
+  }
+
+  (g.sections || []).forEach(function (s) {
+    if (s.title || s.text) out += block(s.title || '', '<p>' + escapeHtml(s.text || '') + '</p>');
+  });
+
+  // Честно объясняем пустоту, а не оставляем гостя гадать, почему нет адреса.
+  if (accessOpen === false) {
+    out += '<div class="locked">Адрес, маршрут, Wi-Fi и код доступа откроются на этой странице за 2 дня до заезда.</div>';
+  }
+  return out;
+}
+
 function render(b) {
   var n = nights(b.check_in, b.check_out);
   var word = n % 10 === 1 && n % 100 !== 11 ? 'ночь'
@@ -85,6 +167,7 @@ function render(b) {
         '<div class="row"><span class="k">Продолжительность</span><span class="v">' + n + ' ' + word + '</span></div>' +
         '<div class="row"><span class="k">Статус</span><span class="v">' + statusPill(b.status) + '</span></div>' +
         (b.property_description ? '<div class="desc">' + escapeHtml(b.property_description) + '</div>' : '') +
+        renderGuide(b.guide || {}, b.access_open) +
       '</div>' +
     '</div>';
 }
