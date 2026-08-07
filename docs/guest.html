@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ваше бронирование — HostBase</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         background:#F8FAFC; color:#111827; margin:0; padding:24px 16px 40px; }
+  .card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; overflow:hidden;
+          max-width:460px; margin:0 auto; }
+  .photo { width:100%; height:200px; object-fit:cover; display:block; background:#EEF2FF; }
+  .body { padding:24px 22px 26px; }
+  h1 { font-size:21px; margin:0 0 4px; }
+  .property { font-size:15px; color:#4F46E5; font-weight:600; margin:0 0 20px; }
+  .row { display:flex; justify-content:space-between; gap:16px; padding:13px 0; border-bottom:1px solid #F1F5F9; font-size:14.5px; }
+  .row:last-of-type { border-bottom:none; }
+  .row .k { color:#6B7280; }
+  .row .v { font-weight:600; text-align:right; }
+  .pill { display:inline-block; padding:4px 11px; border-radius:999px; font-size:13px; font-weight:600; }
+  .paid { background:#DCFCE7; color:#166534; }
+  .pending { background:#FEF3C7; color:#92400E; }
+  .cancelled { background:#F1F5F9; color:#64748B; }
+  .desc { margin-top:18px; font-size:14px; line-height:1.65; color:#4B5563; white-space:pre-wrap; }
+  .state { max-width:460px; margin:60px auto; text-align:center; color:#6B7280; font-size:15px; line-height:1.6; }
+  .brand { max-width:460px; margin:22px auto 0; text-align:center; font-size:12.5px; color:#9CA3AF; }
+</style>
+</head>
+<body>
+  <div id="root"><div class="state">Загружаем бронирование…</div></div>
+  <div class="brand">HostBase</div>
+
+<script>
+// Страница гостя. Открывается по обычной https-ссылке в любом браузере —
+// приложение гостю не нужно и не предполагается.
+//
+// Ключ ниже — публикуемый (publishable) ключ Supabase, он по своей природе
+// виден в любом клиенте; настоящая граница доступа — сам RPC. Функция
+// get_public_booking помечена security definer и отдаёт ТОЛЬКО безопасные
+// для гостя поля одной брони: имя, даты, статус, название/описание/фото
+// объекта. Ни телефона, ни ссылки на оплату, ни владельца, ни чужих броней.
+// Идентификатор брони — случайный uuid, он же и есть неугадываемый токен.
+var SUPABASE_URL = 'https://jhkfcbuexreyxuwlpstg.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_SX_FMvIvNxB1hELUKeaWTw_6Ti9G3zO';
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  var d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function nights(a, b) {
+  var start = new Date(a + 'T00:00:00'), end = new Date(b + 'T00:00:00');
+  return Math.max(0, Math.round((end - start) / 86400000));
+}
+
+function statusPill(status) {
+  var cls = status === 'Оплачено' ? 'paid' : status === 'Отменено' ? 'cancelled' : 'pending';
+  return '<span class="pill ' + cls + '">' + escapeHtml(status) + '</span>';
+}
+
+function showState(text) {
+  document.getElementById('root').innerHTML = '<div class="state">' + escapeHtml(text) + '</div>';
+}
+
+function render(b) {
+  var n = nights(b.check_in, b.check_out);
+  var word = n % 10 === 1 && n % 100 !== 11 ? 'ночь'
+    : [2,3,4].indexOf(n % 10) !== -1 && [12,13,14].indexOf(n % 100) === -1 ? 'ночи' : 'ночей';
+  document.getElementById('root').innerHTML =
+    '<div class="card">' +
+      (b.property_photo_url ? '<img class="photo" src="' + escapeHtml(b.property_photo_url) + '" alt="">' : '') +
+      '<div class="body">' +
+        '<h1>Здравствуйте, ' + escapeHtml(b.guest) + '!</h1>' +
+        '<p class="property">' + escapeHtml(b.property_name) + '</p>' +
+        '<div class="row"><span class="k">Заезд</span><span class="v">' + escapeHtml(formatDate(b.check_in)) + '</span></div>' +
+        '<div class="row"><span class="k">Выезд</span><span class="v">' + escapeHtml(formatDate(b.check_out)) + '</span></div>' +
+        '<div class="row"><span class="k">Продолжительность</span><span class="v">' + n + ' ' + word + '</span></div>' +
+        '<div class="row"><span class="k">Статус</span><span class="v">' + statusPill(b.status) + '</span></div>' +
+        (b.property_description ? '<div class="desc">' + escapeHtml(b.property_description) + '</div>' : '') +
+      '</div>' +
+    '</div>';
+}
+
+(function () {
+  var id = new URLSearchParams(window.location.search).get('id') || '';
+  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+    showState('Ссылка неполная. Попросите у хозяина жилья новую.');
+    return;
+  }
+  fetch(SUPABASE_URL + '/rest/v1/rpc/get_public_booking', {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_booking_id: id }),
+  })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
+    .then(function (data) {
+      var b = Array.isArray(data) ? data[0] : data;
+      if (!b) { showState('Бронирование не найдено — возможно, ссылка устарела.'); return; }
+      render(b);
+    })
+    .catch(function () {
+      showState('Не удалось загрузить бронирование. Попробуйте открыть ссылку ещё раз чуть позже.');
+    });
+})();
+</script>
+</body>
+</html>
