@@ -36,6 +36,20 @@
             font-size:13.5px; line-height:1.55; margin-top:18px; }
   .state { max-width:460px; margin:60px auto; text-align:center; color:#6B7280; font-size:15px; line-height:1.6; }
   .brand { max-width:460px; margin:22px auto 0; text-align:center; font-size:12.5px; color:#9CA3AF; }
+  .srv { border:1px solid #E5E7EB; border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+  .srv-head { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+  .srv-title { font-size:14.5px; font-weight:600; }
+  .srv-price { font-size:14px; font-weight:700; white-space:nowrap; }
+  .srv-desc { margin:6px 0 0; font-size:13px; line-height:1.55; color:#6B7280; white-space:pre-wrap; }
+  .srv-btn { margin-top:10px; background:#EEF2FF; color:#4F46E5; border:none; border-radius:9px;
+             padding:9px 14px; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .srv-btn.primary { background:#4F46E5; color:#fff; }
+  .srv-btn[disabled] { opacity:.55; cursor:default; }
+  .srv-note { width:100%; box-sizing:border-box; margin-top:10px; border:1px solid #E5E7EB; border-radius:9px;
+              padding:9px 11px; font-size:13.5px; font-family:inherit; resize:vertical; min-height:60px; }
+  .srv-msg { margin-top:9px; font-size:13px; line-height:1.5; }
+  .srv-msg.ok { color:#166534; }
+  .srv-msg.err { color:#B91C1C; }
 </style>
 </head>
 <body>
@@ -54,6 +68,7 @@
 // Идентификатор брони — случайный uuid, он же и есть неугадываемый токен.
 var SUPABASE_URL = 'https://jhkfcbuexreyxuwlpstg.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_SX_FMvIvNxB1hELUKeaWTw_6Ti9G3zO';
+var FUNCTIONS_URL = 'https://jhkfcbuexreyxuwlpstg.functions.supabase.co';
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -172,6 +187,106 @@ function render(b) {
     '</div>';
 }
 
+// Услуги грузятся отдельным запросом после самой брони: прайс — это
+// приятное дополнение, и его сбой не должен мешать гостю увидеть адрес и
+// даты, ради которых он открыл страницу.
+function renderServices(bookingId, list) {
+  if (!list.length) return;
+  var wrap = document.createElement('div');
+  wrap.className = 'block';
+  wrap.innerHTML = '<h2>Дополнительные услуги</h2>';
+
+  list.forEach(function (s) {
+    var row = document.createElement('div');
+    row.className = 'srv';
+    row.innerHTML =
+      '<div class="srv-head"><span class="srv-title">' + escapeHtml(s.title) + '</span>' +
+      '<span class="srv-price">' + (s.price == null ? 'по запросу' : Number(s.price).toFixed(2) + ' €') + '</span></div>' +
+      (s.description ? '<p class="srv-desc">' + escapeHtml(s.description) + '</p>' : '');
+
+    var button = document.createElement('button');
+    button.className = 'srv-btn';
+    button.type = 'button';
+    button.textContent = 'Заказать';
+    row.appendChild(button);
+
+    var note = document.createElement('textarea');
+    note.className = 'srv-note';
+    note.placeholder = 'Пожелания: время, количество человек — необязательно';
+    note.style.display = 'none';
+    row.appendChild(note);
+
+    var message = document.createElement('div');
+    message.className = 'srv-msg';
+    row.appendChild(message);
+
+    button.onclick = function () {
+      // Первый тап раскрывает поле пожеланий, второй отправляет: гость
+      // успевает передумать, а хозяин получает заявку сразу с деталями.
+      if (note.style.display === 'none') {
+        note.style.display = 'block';
+        button.textContent = 'Отправить заявку';
+        button.className = 'srv-btn primary';
+        note.focus();
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Отправляем…';
+      orderService(bookingId, s.id, note.value, function (error) {
+        if (error) {
+          button.disabled = false;
+          button.textContent = 'Отправить заявку';
+          message.className = 'srv-msg err';
+          message.textContent = error;
+          return;
+        }
+        note.style.display = 'none';
+        button.style.display = 'none';
+        message.className = 'srv-msg ok';
+        message.textContent = 'Заявка отправлена. Хозяин свяжется с вами, чтобы подтвердить детали.';
+      });
+    };
+
+    wrap.appendChild(row);
+  });
+
+  var body = document.querySelector('.card .body');
+  if (body) body.appendChild(wrap);
+}
+
+var ORDER_ERRORS = {
+  booking_cancelled: 'Бронирование отменено, заказать услугу нельзя.',
+  booking_finished: 'Срок этого бронирования уже прошёл.',
+  too_many_orders: 'По этому бронированию уже слишком много заявок. Напишите хозяину напрямую.',
+  service_unavailable: 'Эта услуга сейчас недоступна.',
+  not_found: 'Бронирование не найдено — возможно, ссылка устарела.'
+};
+
+function orderService(bookingId, serviceId, note, done) {
+  fetch(FUNCTIONS_URL + '/order-service', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bookingId: bookingId, serviceId: serviceId, note: note }),
+  })
+    .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+    .then(function (res) {
+      if (res.ok && res.body && res.body.ok) { done(null); return; }
+      done(ORDER_ERRORS[res.body && res.body.error] || 'Не удалось отправить заявку. Попробуйте ещё раз.');
+    })
+    .catch(function () { done('Не удалось отправить заявку. Проверьте связь и попробуйте ещё раз.'); });
+}
+
+function loadServices(bookingId) {
+  fetch(SUPABASE_URL + '/rest/v1/rpc/get_public_services', {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_booking_id: bookingId }),
+  })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (list) { renderServices(bookingId, Array.isArray(list) ? list : []); })
+    .catch(function () {});
+}
+
 (function () {
   var id = new URLSearchParams(window.location.search).get('id') || '';
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
@@ -188,6 +303,7 @@ function render(b) {
       var b = Array.isArray(data) ? data[0] : data;
       if (!b) { showState('Бронирование не найдено — возможно, ссылка устарела.'); return; }
       render(b);
+      if (b.status !== 'Отменено') loadServices(id);
     })
     .catch(function () {
       showState('Не удалось загрузить бронирование. Попробуйте открыть ссылку ещё раз чуть позже.');
