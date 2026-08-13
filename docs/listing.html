@@ -92,27 +92,27 @@ function facts(p) {
   return out;
 }
 
-function formatDate(iso) {
-  if (!iso) return '';
-  var d = new Date(iso + 'T00:00:00');
-  if (isNaN(d)) return iso;
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-}
-
-// Цены объекта хранятся в евро — на витрине так и показываем, без пересчёта:
-// у страницы нет ни выбранной валюты, ни курсов, а угадывать валюту по
-// стране браузера и показать неверную сумму хуже, чем показать евро честно.
-function seasons(rates) {
-  if (!Array.isArray(rates) || rates.length === 0) return '';
-  return rates
-    .slice()
-    .sort(function (a, b) { return String(a.startDate).localeCompare(String(b.startDate)); })
-    .map(function (r) {
-      return '<div class="kv"><span class="k">' +
-        escapeHtml(formatDate(r.startDate) + ' — ' + formatDate(r.endDate)) +
-        '</span><span class="v">' + escapeHtml(r.price) + ' €/ночь</span></div>';
-    })
-    .join('');
+// Показываем вилку цен, а НЕ таблицу сезонов: полная сетка — это внутренняя
+// ценовая политика хоста. По ней видно, когда дешевле, что даёт повод ждать
+// другого месяца или торговаться, а конкурент читает её целиком. Гостю нужен
+// ориентир, точную цену он узнаёт на свои даты.
+//
+// Базовая цена участвует наравне с сезонными: это не «цена до начала
+// сезона», а реальная ставка для дат, не покрытых ни одним сезоном.
+//
+// Цены хранятся в евро — так и показываем, без пересчёта: у страницы нет ни
+// выбранной валюты, ни курсов, а угадывать валюту по стране браузера и
+// показать неверную сумму хуже, чем показать евро честно.
+function priceRange(basePrice, rates) {
+  var prices = [];
+  function add(value) {
+    var num = Number(value);
+    if (isFinite(num) && num > 0) prices.push(num);
+  }
+  add(basePrice);
+  (Array.isArray(rates) ? rates : []).forEach(function (r) { add(r && r.price); });
+  if (prices.length === 0) return null;
+  return { min: Math.min.apply(null, prices), max: Math.max.apply(null, prices) };
 }
 
 function contactBlock(contact) {
@@ -135,7 +135,7 @@ function render(p) {
   var listing = p.listing || {};
   var contact = listing.contact || {};
   var list = facts(p);
-  var seasonRows = seasons(p.seasonal_rates);
+  var range = priceRange(p.base_price, p.seasonal_rates);
   var contacts = contactBlock(contact);
   var license = (p.features || {}).touristLicense || {};
 
@@ -150,11 +150,12 @@ function render(p) {
               return '<span class="fact">' + escapeHtml(f) + '</span>';
             }).join('') + '</div>'
           : '') +
-        (p.base_price != null
-          ? '<div class="price"><span class="v">' + escapeHtml(p.base_price) + ' €</span><span class="u">за ночь</span></div>'
+        (range
+          ? '<div class="price"><span class="v">' +
+              escapeHtml(range.min === range.max ? range.min + ' €' : range.min + '–' + range.max + ' €') +
+            '</span><span class="u">за ночь</span></div>'
           : '') +
         (p.description ? '<p class="desc">' + escapeHtml(p.description) + '</p>' : '') +
-        (seasonRows ? '<div class="block"><h2>Цены по сезонам</h2>' + seasonRows + '</div>' : '') +
         (contacts ? '<div class="block"><h2>Забронировать</h2>' + contacts + '</div>' : '') +
         (license.status === 'yes' && license.number
           ? '<p class="lic">Лицензия на туристическую аренду: ' + escapeHtml(license.number) + '</p>'
