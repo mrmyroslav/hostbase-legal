@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Объект — HostBase</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         background:#F8FAFC; color:#111827; margin:0; padding:24px 16px 40px; }
+  .card { background:#fff; border:1px solid #E5E7EB; border-radius:16px; overflow:hidden;
+          max-width:520px; margin:0 auto; }
+  .photo { width:100%; height:230px; object-fit:cover; display:block; background:#EEF2FF; }
+  .body { padding:24px 22px 26px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .headline { font-size:15px; color:#4F46E5; font-weight:600; margin:0 0 18px; }
+  .facts { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+  .fact { background:#F1F5F9; border-radius:999px; padding:6px 12px; font-size:13px; font-weight:600; color:#334155; }
+  .price { display:flex; align-items:baseline; gap:8px; margin:0 0 18px; }
+  .price .v { font-size:26px; font-weight:700; }
+  .price .u { font-size:14px; color:#6B7280; }
+  .desc { font-size:14.5px; line-height:1.65; color:#4B5563; white-space:pre-wrap; }
+  .block { border-top:1px solid #F1F5F9; padding:18px 0 4px; }
+  .block h2 { font-size:13px; margin:0 0 10px; text-transform:uppercase; letter-spacing:.4px; color:#6B7280; }
+  .kv { display:flex; justify-content:space-between; gap:14px; font-size:14.5px; padding:7px 0; }
+  .kv .k { color:#6B7280; }
+  .kv .v { font-weight:600; text-align:right; }
+  .btn { display:inline-block; background:#4F46E5; color:#fff; text-decoration:none;
+         padding:12px 18px; border-radius:10px; font-size:14.5px; font-weight:600; margin:2px 6px 6px 0; }
+  .btn.ghost { background:#EEF2FF; color:#4F46E5; }
+  .lic { margin-top:16px; font-size:12.5px; line-height:1.55; color:#6B7280; }
+  .state { max-width:460px; margin:60px auto; text-align:center; color:#6B7280; font-size:15px; line-height:1.6; }
+  .brand { max-width:520px; margin:22px auto 0; text-align:center; font-size:12.5px; color:#9CA3AF; }
+</style>
+</head>
+<body>
+  <div id="root"><div class="state">Загружаем объект…</div></div>
+  <div class="brand">HostBase</div>
+
+<script>
+// Публичная витрина объекта. Открывается обычной https-ссылкой, приложение
+// не нужно.
+//
+// Ключ ниже — публикуемый ключ Supabase, он виден в любом клиенте по своей
+// природе; настоящая граница — сам RPC. get_public_listing (security
+// definer) отдаёт объект ТОЛЬКО если хост включил витрину, и только
+// витринные поля. Гида для гостя там нет вовсе — в нём адрес, Wi-Fi и код
+// от двери, а они открываются лишь человеку с реальной бронью и лишь за
+// два дня до заезда. Поле keys (где персонал забирает ключи) вырезается на
+// сервере. Токен объекта — случайный uuid и работает как пароль ссылки.
+var SUPABASE_URL = 'https://jhkfcbuexreyxuwlpstg.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_SX_FMvIvNxB1hELUKeaWTw_6Ti9G3zO';
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showState(text) {
+  document.getElementById('root').innerHTML = '<div class="state">' + escapeHtml(text) + '</div>';
+}
+
+function plural(n, one, few, many) {
+  var m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
+var POOL = { shared: 'Общий бассейн', private: 'Свой бассейн' };
+var PARKING = { spot: 'Парковочное место', garageShared: 'Общий гараж', garagePrivate: 'Свой гараж' };
+var VIEWS = { sea: 'вид на море', garden: 'вид на сад', mountains: 'вид на горы', road: 'вид на дорогу' };
+var TOGGLES = {
+  airConditioning: 'Кондиционер', solarPanels: 'Солнечные панели', evCharging: 'Зарядка для электромобиля',
+  furnished: 'С мебелью', tennisCourt: 'Теннисный корт'
+};
+var INCLUDES = { water: 'вода включена', electricity: 'электричество включено' };
+
+function facts(p) {
+  var out = [];
+  if (p.bedrooms != null) out.push(p.bedrooms + ' ' + plural(p.bedrooms, 'спальня', 'спальни', 'спален'));
+  if (p.bathrooms != null) out.push(p.bathrooms + ' ' + plural(p.bathrooms, 'санузел', 'санузла', 'санузлов'));
+  if (p.area != null) out.push(p.area + ' m²');
+
+  var f = p.features || {};
+  if (POOL[f.pool]) out.push(POOL[f.pool] + (f.poolHeated ? ' с подогревом' : ''));
+  if (PARKING[f.parking]) out.push(PARKING[f.parking]);
+  Object.keys(TOGGLES).forEach(function (key) { if (f[key]) out.push(TOGGLES[key]); });
+  (f.views || []).forEach(function (v) { if (VIEWS[v]) out.push(VIEWS[v]); });
+  (f.communityIncludes || []).forEach(function (v) { if (INCLUDES[v]) out.push(INCLUDES[v]); });
+
+  return out;
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  var d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+
+// Цены объекта хранятся в евро — на витрине так и показываем, без пересчёта:
+// у страницы нет ни выбранной валюты, ни курсов, а угадывать валюту по
+// стране браузера и показать неверную сумму хуже, чем показать евро честно.
+function seasons(rates) {
+  if (!Array.isArray(rates) || rates.length === 0) return '';
+  return rates
+    .slice()
+    .sort(function (a, b) { return String(a.startDate).localeCompare(String(b.startDate)); })
+    .map(function (r) {
+      return '<div class="kv"><span class="k">' +
+        escapeHtml(formatDate(r.startDate) + ' — ' + formatDate(r.endDate)) +
+        '</span><span class="v">' + escapeHtml(r.price) + ' €/ночь</span></div>';
+    })
+    .join('');
+}
+
+function contactBlock(contact) {
+  var out = '';
+  if (contact.phone) {
+    out += '<a class="btn" href="tel:' + escapeHtml(contact.phone) + '">Позвонить</a>';
+  }
+  if (contact.whatsapp) {
+    out += '<a class="btn ghost" href="https://wa.me/' +
+      escapeHtml(String(contact.whatsapp).replace(/[^0-9]/g, '')) +
+      '" target="_blank" rel="noopener">WhatsApp</a>';
+  }
+  if (contact.email) {
+    out += '<a class="btn ghost" href="mailto:' + escapeHtml(contact.email) + '">Написать</a>';
+  }
+  return out;
+}
+
+function render(p) {
+  var listing = p.listing || {};
+  var contact = listing.contact || {};
+  var list = facts(p);
+  var seasonRows = seasons(p.seasonal_rates);
+  var contacts = contactBlock(contact);
+  var license = (p.features || {}).touristLicense || {};
+
+  document.getElementById('root').innerHTML =
+    '<div class="card">' +
+      (p.photo_url ? '<img class="photo" src="' + escapeHtml(p.photo_url) + '" alt="" />' : '') +
+      '<div class="body">' +
+        '<h1>' + escapeHtml(p.name) + '</h1>' +
+        (listing.headline ? '<p class="headline">' + escapeHtml(listing.headline) + '</p>' : '') +
+        (list.length
+          ? '<div class="facts">' + list.map(function (f) {
+              return '<span class="fact">' + escapeHtml(f) + '</span>';
+            }).join('') + '</div>'
+          : '') +
+        (p.base_price != null
+          ? '<div class="price"><span class="v">' + escapeHtml(p.base_price) + ' €</span><span class="u">за ночь</span></div>'
+          : '') +
+        (p.description ? '<p class="desc">' + escapeHtml(p.description) + '</p>' : '') +
+        (seasonRows ? '<div class="block"><h2>Цены по сезонам</h2>' + seasonRows + '</div>' : '') +
+        (contacts ? '<div class="block"><h2>Забронировать</h2>' + contacts + '</div>' : '') +
+        (license.status === 'yes' && license.number
+          ? '<p class="lic">Лицензия на туристическую аренду: ' + escapeHtml(license.number) + '</p>'
+          : '') +
+      '</div>' +
+    '</div>';
+
+  if (p.name) document.title = p.name + ' — HostBase';
+}
+
+(function () {
+  var token = new URLSearchParams(window.location.search).get('token') || '';
+  if (!/^[0-9a-f-]{36}$/i.test(token)) {
+    showState('Ссылка неполная. Попросите у владельца новую.');
+    return;
+  }
+  fetch(SUPABASE_URL + '/rest/v1/rpc/get_public_listing', {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_token: token }),
+  })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
+    .then(function (data) {
+      var p = Array.isArray(data) ? data[0] : data;
+      // Пустой ответ — это и «объекта нет», и «витрину выключили». Разные
+      // тексты подсказали бы перебирающему, какие токены существуют.
+      if (!p) { showState('Объект не найден — возможно, ссылка устарела.'); return; }
+      render(p);
+    })
+    .catch(function () {
+      showState('Не удалось загрузить объект. Попробуйте открыть ссылку ещё раз чуть позже.');
+    });
+})();
+</script>
+</body>
+</html>
