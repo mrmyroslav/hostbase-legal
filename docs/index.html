@@ -1,91 +1,37 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HostBase — Политика, Условия и Поддержка</title>
-<meta name="description" content="Политика конфиденциальности, Условия использования и служба поддержки приложения HostBase.">
-<style>
-:root {
-  --primary: #4F46E5;
-  --primary-dark: #4338CA;
-  --bg: #FFFFFF;
-  --surface: #F7F8FC;
-  --card: #FFFFFF;
-  --border: #E5E7EB;
-  --text: #111827;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
-  --shadow: rgba(30, 27, 75, 0.08);
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #6366F1;
-    --primary-dark: #818CF8;
-    --bg: #0B0F1A;
-    --surface: #161B29;
-    --card: #161B29;
-    --border: #2A3142;
-    --text: #F3F4F6;
-    --text-secondary: #9CA3AF;
-    --text-muted: #6B7280;
-    --shadow: rgba(0, 0, 0, 0.35);
-  }
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-}
-.wrap { max-width: 720px; margin: 0 auto; padding: 48px 20px 64px; }
-header.site { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.logo { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size: 20px; flex-shrink: 0; }
-.brand { font-size: 22px; font-weight: 700; }
-h1 { font-size: 26px; margin: 12px 0 8px; }
-p.lead { color: var(--text-secondary); font-size: 16px; margin-bottom: 36px; }
-.card { background: var(--card); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:16px; box-shadow: 0 4px 10px var(--shadow); }
-.card h2 { font-size: 17px; margin: 0 0 8px; }
-.card p { color: var(--text-secondary); font-size: 14px; margin: 0 0 14px; }
-.card a.button { display:inline-block; text-decoration:none; background:var(--primary); color:#fff; padding:10px 18px; border-radius:10px; font-weight:600; font-size:14px; }
-.card a.button:hover { background: var(--primary-dark); }
-footer.site { margin-top: 40px; padding-top: 20px; border-top:1px solid var(--border); color: var(--text-muted); font-size: 13px; }
-footer.site a { color: var(--text-secondary); }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <header class="site">
-    <div class="logo">H</div>
-    <div class="brand">HostBase</div>
-  </header>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>HostBase</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  <link rel="icon" href="/favicon.ico" /></head>
 
-  <h1>Правовая информация и поддержка</h1>
-  <p class="lead">HostBase — сервис управления объектами краткосрочной аренды для собственников, агентств и отелей. Ниже — документы и контакты, необходимые для публикации приложения в App Store и Google Play.</p>
-
-  <div class="card">
-    <h2>Политика конфиденциальности</h2>
-    <p>Какие данные собирает приложение, как их использует и кому передаёт.</p>
-    <a class="button" href="privacy.html">Читать →</a>
-  </div>
-
-  <div class="card">
-    <h2>Условия использования</h2>
-    <p>Условия подписки, оплаты и использования сервиса.</p>
-    <a class="button" href="terms.html">Читать →</a>
-  </div>
-
-  <div class="card">
-    <h2>Поддержка и удаление аккаунта</h2>
-    <p>Контакты службы поддержки и порядок удаления учётной записи и данных.</p>
-    <a class="button" href="support.html">Открыть →</a>
-  </div>
-
-  <footer class="site">
-    © 2026 HostBase. Все права защищены.
-  </footer>
-</div>
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  <script src="/_expo/static/js/web/index-e2da0fad0edcc7499bcc8a9de44b19db.js" defer></script>
 </body>
 </html>
