@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cupo de vivienda vacacional en Canarias — Ley 6/2025, municipio a municipio</title>
+<meta name="description" content="Mapa de saturación del cupo de vivienda vacacional de la Ley 6/2025: qué municipios de Canarias ya superan el tope legal, cuántas licencias quedan y qué significa para propietarios y compradores.">
+<meta property="og:title" content="Cupo de vivienda vacacional en Canarias, municipio a municipio">
+<meta property="og:description" content="17 municipios ya superan el tope de la Ley 6/2025. Datos abiertos, actualizados y verificables.">
+<style>
+:root{
+  --bg:#F6F5F1; --card:#FFFFFF; --line:#E2DFD6; --line2:#CBC7BA;
+  --ink:#1F1D17; --ink2:#4A463B; --mut:#7A7466;
+  --acc:#0E6E63; --accSoft:#E3EFEC;
+  --hot:#A03123; --hotSoft:#F7E4E0;
+  --gold:#7E5711; --goldSoft:#F3EAD3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px 80px}
+header{padding:52px 0 26px;border-bottom:1px solid var(--line2)}
+.kicker{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--acc);font-weight:700;margin:0 0 14px}
+h1{font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0 0 14px;letter-spacing:-.02em;max-width:22ch}
+.lede{font-size:18px;color:var(--ink2);max-width:62ch;margin:0 0 10px}
+.upd{font-size:13px;color:var(--mut)}
+h2{font-size:24px;margin:44px 0 8px;letter-spacing:-.01em}
+h3{font-size:17px;margin:26px 0 8px}
+p{max-width:70ch;margin:0 0 13px}
+a{color:var(--acc)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:26px 0}
+.card{background:var(--card);padding:16px 18px}
+.card .v{font-size:27px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.card .v.hot{color:var(--hot)}
+.card .k{font-size:12.5px;color:var(--mut);margin-top:5px;line-height:1.35}
+.controls{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0 12px;align-items:center}
+.chip{border:1px solid var(--line2);background:var(--card);border-radius:999px;
+  padding:6px 14px;font-size:13.5px;cursor:pointer;color:var(--ink2)}
+.chip[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+#buscar{flex:1;min-width:180px;border:1px solid var(--line2);border-radius:8px;
+  padding:8px 12px;font-size:14.5px;background:var(--card);color:var(--ink)}
+#buscar:focus{outline:2px solid var(--acc);outline-offset:1px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--card);margin:6px 0 8px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:680px}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--line2);background:#F0EEE7;white-space:nowrap}
+th.n{text-align:right}
+td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.mun{font-weight:600}
+td.isla{color:var(--mut);font-size:13px;white-space:nowrap}
+.bar{position:relative;height:10px;min-width:110px;background:var(--accSoft);border-radius:5px;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--acc)}
+.bar.hot{background:var(--hotSoft)} .bar.hot i{background:var(--hot)}
+.bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink2)}
+.est{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;
+  border-radius:4px;padding:2px 7px;white-space:nowrap}
+.est.superado{background:var(--hotSoft);color:var(--hot)}
+.est.limite{background:var(--goldSoft);color:var(--gold)}
+.est.margen{background:var(--accSoft);color:var(--acc)}
+.note{border-left:3px solid var(--gold);background:var(--card);border-radius:0 6px 6px 0;
+  padding:14px 18px;margin:22px 0;max-width:72ch}
+.note.acc{border-left-color:var(--acc)}
+.note h3{margin:0 0 7px;font-size:14.5px}
+.note p{font-size:14.5px;margin:0 0 8px} .note p:last-child{margin:0}
+.cta{background:var(--card);border:1px solid var(--line);border-radius:8px;
+  padding:24px 24px;margin:38px 0}
+.cta h2{margin:0 0 8px}
+.btn{display:inline-block;background:var(--acc);color:#fff;text-decoration:none;
+  font-weight:600;font-size:15px;border-radius:8px;padding:11px 20px;margin-top:6px}
+footer{border-top:1px solid var(--line2);margin-top:52px;padding-top:22px;font-size:13px;color:var(--mut)}
+footer p{max-width:none}
+.count{font-size:13px;color:var(--mut);margin:0 0 20px}
+@media(max-width:640px){ .lede{font-size:16.5px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+<p class="kicker">Ley 6/2025 · datos abiertos verificables</p>
+<h1>El cupo de vivienda vacacional, municipio a municipio</h1>
+<p class="lede">La Ley 6/2025 reserva como mínimo el 90% del parque de viviendas de cada municipio canario al uso residencial (80% en las islas verdes). Esta página cruza el registro oficial de viviendas vacacionales con el censo de viviendas del INE y muestra cuánto de ese margen queda — o cuánto se ha superado ya.</p>
+<p class="upd" id="upd"></p>
+</header>
+
+<div class="cards" id="cards"></div>
+
+<h2>Resumen por isla</h2>
+<div class="tw"><table id="tislas">
+<thead><tr><th>Isla</th><th class="n">Viviendas vacacionales</th><th class="n">Parque de viviendas</th><th class="n">% ocupado</th><th class="n">Tope</th><th class="n">Municipios sobre el tope</th></tr></thead>
+<tbody></tbody></table></div>
+
+<h2>Los 90 municipios</h2>
+<div class="controls">
+  <input id="buscar" type="search" placeholder="Buscar municipio…" aria-label="Buscar municipio">
+  <button class="chip" data-isla="" aria-pressed="true">Todas</button>
+  <button class="chip" data-isla="Tenerife" aria-pressed="false">Tenerife</button>
+  <button class="chip" data-isla="Gran Canaria" aria-pressed="false">Gran Canaria</button>
+  <button class="chip" data-isla="Lanzarote" aria-pressed="false">Lanzarote</button>
+  <button class="chip" data-isla="Fuerteventura" aria-pressed="false">Fuerteventura</button>
+  <button class="chip" data-isla="La Palma" aria-pressed="false">La Palma</button>
+  <button class="chip" data-isla="La Gomera" aria-pressed="false">La Gomera</button>
+  <button class="chip" data-isla="El Hierro" aria-pressed="false">El Hierro</button>
+</div>
+<p class="count" id="count"></p>
+<div class="tw"><table id="tmun">
+<thead><tr><th>Municipio</th><th>Isla</th><th class="n">VV</th><th class="n">Viviendas</th><th class="n">% ocupado</th><th>Saturación del tope</th><th class="n">Margen</th><th>Estado</th></tr></thead>
+<tbody></tbody></table></div>
+<p class="count">«Margen»: licencias que caben hasta el tope legal con el parque actual; en negativo, cuántas lo exceden. La barra marca el % ocupado sobre el tope de la isla (la marca vertical es el tope).</p>
+
+<div class="note">
+<h3>Qué significa estar «sobre el tope»</h3>
+<p>La reserva del 90/80% es el punto de partida que fija la ley: el planeamiento de cada municipio sólo puede mantenerla o hacerla más estricta. En un municipio que ya supera el tope no cabrán nuevas altas cuando se apruebe su planeamiento — y mientras no se apruebe, las altas nuevas están suspendidas con carácter general.</p>
+<p>Además, desde la Ley 6/2025 <strong>la habilitación turística se extingue al transmitirse la vivienda</strong> (salvo herencia): quien compra una vivienda vacacional en un municipio saturado compra una vivienda que no podrá volver a ser turística. Y todo titular actual debe presentar la comunicación previa de actividades clasificadas <strong>antes del 31 de julio de 2027</strong>, bajo cese automático.</p>
+</div>
+
+<div class="cta" id="informe">
+<h2>¿Necesitas saber qué pasa con una vivienda concreta?</h2>
+<p>Preparamos un informe por dirección: situación registral, municipio y su saturación, régimen transitorio aplicable, qué ocurre en caso de venta y el calendario de obligaciones hasta julio de 2027.</p>
+<a class="btn" href="mailto:profilaborg@proton.me?subject=Informe%20cupo%20VV&body=Direcci%C3%B3n%20de%20la%20vivienda%3A%20">Pedir un informe</a>
+<p style="margin-top:12px;font-size:13.5px;color:var(--mut)">Un proyecto de <a href="https://hostbase.org">HostBase</a>, software canario para gestores de vivienda vacacional.</p>
+</div>
+
+<h2>Metodología, honesta</h2>
+<p><strong>Numerador:</strong> establecimientos de tipología «vivienda vacacional» inscritos en el Registro General Turístico de Canarias (datos abiertos del Gobierno de Canarias, actualizados de forma continua; esta página indica su fecha de descarga).</p>
+<p><strong>Denominador:</strong> total de viviendas familiares por municipio del Censo 2021 del INE. La ley no fija el denominador: lo concretará el planeamiento de cada municipio. Si se calculara sobre viviendas <em>principales</em>, los porcentajes serían mayores (Adeje pasaría del 25% al 32%). Publicamos la metodología completa precisamente porque la cifra oficial de cada municipio aún no existe.</p>
+<p><strong>Topes:</strong> 10% en islas turísticas y 20% en La Palma, La Gomera y El Hierro, según la reserva mínima del artículo 4. Algunos municipios en reto demográfico podrían tener tope del 20%; no existe lista oficial publicada, así que aplicamos el criterio de isla.</p>
+<p><strong>Lo que esta página no es:</strong> asesoramiento jurídico ni cifra oficial. Es una estimación reproducible sobre datos públicos, con el código y las fuentes a la vista, para una ley cuyo desarrollo municipal está en curso.</p>
+
+<footer>
+<p><strong>Fuentes:</strong> <a href="https://datos.canarias.es/catalogos/general/dataset/establecimientos-extrahoteleros-de-tipologia-vivienda-vacacional-inscritos-en-el-registro">Registro General Turístico de Canarias</a> (CC BY 4.0) · <a href="https://www.ine.es/jaxi/Tabla.htm?path=/t20/e244/viviendas/p06/l0/&file=9mun38.px&L=0">INE, Censo 2021: viviendas por municipio</a> · <a href="https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26358">Ley 6/2025 (BOE)</a>.</p>
+<p>© HostBase · <a href="https://hostbase.org/privacy.html">Privacidad</a> · Contacto: profilaborg@proton.me</p>
+</footer>
+
+</div>
+
+<!-- BEGIN CUPO-DATA --><script id="cupo-data" type="application/json">{"actualizado":"2026-08-28","totalVV":72433,"totalViv":1054955,"superados":17,"islas":[{"isla":"Fuerteventura","vv":9961,"viv":53939,"pct":18.47,"umbral":10.0,"sup":3},{"isla":"Lanzarote","vv":10925,"viv":76572,"pct":14.27,"umbral":10.0,"sup":5},{"isla":"Tenerife","vv":30594,"viv":448575,"pct":6.82,"umbral":10.0,"sup":6},{"isla":"El Hierro","vv":686,"viv":6188,"pct":11.09,"umbral":20.0,"sup":0},{"isla":"La Gomera","vv":1305,"viv":14226,"pct":9.17,"umbral":20.0,"sup":0},{"isla":"Gran Canaria","vv":16693,"viv":413371,"pct":4.04,"umbral":10.0,"sup":3},{"isla":"La Palma","vv":2269,"viv":42084,"pct":5.39,"umbral":20.0,"sup":0}],"municipios":[{"m":"La Oliva","isla":"Fuerteventura","vv":5202,"plazas":22018,"viv":11253,"pct":46.23,"pctPrin":52.5,"umbral":10.0,"margen":-4077,"estado":"superado"},{"m":"Yaiza","isla":"Lanzarote","vv":3081,"plazas":14999,"viv":12224,"pct":25.2,"pctPrin":52.94,"umbral":10.0,"margen":-1859,"estado":"superado"},{"m":"Adeje","isla":"Tenerife","vv":5953,"plazas":25290,"viv":23712,"pct":25.11,"pctPrin":32.25,"umbral":10.0,"margen":-3582,"estado":"superado"},{"m":"Mogán","isla":"Gran Canaria","vv":3098,"plazas":12307,"viv":14013,"pct":22.11,"pctPrin":33.39,"umbral":10.0,"margen":-1697,"estado":"superado"},{"m":"Antigua","isla":"Fuerteventura","vv":1574,"plazas":6694,"viv":7473,"pct":21.06,"pctPrin":35.88,"umbral":10.0,"margen":-827,"estado":"superado"},{"m":"Teguise","isla":"Lanzarote","vv":2183,"plazas":9905,"viv":11100,"pct":19.67,"pctPrin":27.95,"umbral":10.0,"margen":-1073,"estado":"superado"},{"m":"Tías","isla":"Lanzarote","vv":2932,"plazas":12583,"viv":15515,"pct":18.9,"pctPrin":37.05,"umbral":10.0,"margen":-1381,"estado":"superado"},{"m":"Santiago del Teide","isla":"Tenerife","vv":1570,"plazas":6533,"viv":9085,"pct":17.28,"pctPrin":36.85,"umbral":10.0,"margen":-662,"estado":"superado"},{"m":"San Bartolomé de Tirajana","isla":"Gran Canaria","vv":4725,"plazas":19676,"viv":28125,"pct":16.8,"pctPrin":22.28,"umbral":10.0,"margen":-1913,"estado":"superado"},{"m":"Pájara","isla":"Fuerteventura","vv":1674,"plazas":6007,"viv":10134,"pct":16.52,"pctPrin":19.11,"umbral":10.0,"margen":-661,"estado":"superado"},{"m":"Haría","isla":"Lanzarote","vv":603,"plazas":2795,"viv":3809,"pct":15.83,"pctPrin":29.41,"umbral":10.0,"margen":-223,"estado":"superado"},{"m":"Tinajo","isla":"Lanzarote","vv":372,"plazas":1890,"viv":2417,"pct":15.39,"pctPrin":18.4,"umbral":10.0,"margen":-131,"estado":"superado"},{"m":"Arona","isla":"Tenerife","vv":6806,"plazas":25597,"viv":44531,"pct":15.28,"pctPrin":21.66,"umbral":10.0,"margen":-2353,"estado":"superado"},{"m":"Arico","isla":"Tenerife","vv":784,"plazas":3551,"viv":5915,"pct":13.25,"pctPrin":27.0,"umbral":10.0,"margen":-193,"estado":"superado"},{"m":"San Miguel de Abona","isla":"Tenerife","vv":1511,"plazas":6253,"viv":12152,"pct":12.43,"pctPrin":23.94,"umbral":10.0,"margen":-296,"estado":"superado"},{"m":"Garachico","isla":"Tenerife","vv":231,"plazas":1082,"viv":2175,"pct":10.62,"pctPrin":12.88,"umbral":10.0,"margen":-14,"estado":"superado"},{"m":"Tejeda","isla":"Gran Canaria","vv":102,"plazas":458,"viv":999,"pct":10.21,"pctPrin":11.9,"umbral":10.0,"margen":-3,"estado":"superado"},{"m":"Granadilla de Abona","isla":"Tenerife","vv":2001,"plazas":8721,"viv":20799,"pct":9.62,"pctPrin":12.73,"umbral":10.0,"margen":78,"estado":"limite"},{"m":"Tuineje","isla":"Fuerteventura","vv":604,"plazas":2694,"viv":6379,"pct":9.47,"pctPrin":12.31,"umbral":10.0,"margen":33,"estado":"limite"},{"m":"Puerto de la Cruz","isla":"Tenerife","vv":2048,"plazas":7234,"viv":22337,"pct":9.17,"pctPrin":15.4,"umbral":10.0,"margen":185,"estado":"limite"},{"m":"Agaete","isla":"Gran Canaria","vv":284,"plazas":1587,"viv":3122,"pct":9.1,"pctPrin":12.74,"umbral":10.0,"margen":28,"estado":"limite"},{"m":"El Pinar de El Hierro","isla":"El Hierro","vv":211,"plazas":692,"viv":1195,"pct":17.66,"pctPrin":28.21,"umbral":20.0,"margen":28,"estado":"limite"},{"m":"Hermigua","isla":"La Gomera","vv":170,"plazas":640,"viv":1028,"pct":16.54,"pctPrin":20.12,"umbral":20.0,"margen":35,"estado":"limite"},{"m":"Vilaflor","isla":"Tenerife","vv":76,"plazas":497,"viv":940,"pct":8.09,"pctPrin":11.62,"umbral":10.0,"margen":18,"estado":"limite"},{"m":"Icod de los Vinos","isla":"Tenerife","vv":786,"plazas":3539,"viv":9979,"pct":7.88,"pctPrin":9.74,"umbral":10.0,"margen":211,"estado":"margen"},{"m":"Betancuria","isla":"Fuerteventura","vv":43,"plazas":197,"viv":566,"pct":7.6,"pctPrin":13.23,"umbral":10.0,"margen":13,"estado":"margen"},{"m":"San Bartolomé","isla":"Lanzarote","vv":565,"plazas":2598,"viv":8291,"pct":6.81,"pctPrin":8.21,"umbral":10.0,"margen":264,"estado":"margen"},{"m":"Valle Gran Rey","isla":"La Gomera","vv":577,"plazas":1815,"viv":4254,"pct":13.56,"pctPrin":27.49,"umbral":20.0,"margen":273,"estado":"margen"},{"m":"Santa Úrsula","isla":"Tenerife","vv":412,"plazas":1935,"viv":6393,"pct":6.44,"pctPrin":8.0,"umbral":10.0,"margen":227,"estado":"margen"},{"m":"Los Silos","isla":"Tenerife","vv":134,"plazas":580,"viv":2100,"pct":6.38,"pctPrin":7.52,"umbral":10.0,"margen":76,"estado":"margen"},{"m":"Agulo","isla":"La Gomera","vv":73,"plazas":292,"viv":590,"pct":12.37,"pctPrin":16.7,"umbral":20.0,"margen":45,"estado":"margen"},{"m":"Guía de Isora","isla":"Tenerife","vv":891,"plazas":4007,"viv":14449,"pct":6.17,"pctPrin":12.78,"umbral":10.0,"margen":553,"estado":"margen"},{"m":"El Tanque","isla":"Tenerife","vv":68,"plazas":326,"viv":1182,"pct":5.75,"pctPrin":6.5,"umbral":10.0,"margen":50,"estado":"margen"},{"m":"La Matanza de Acentejo","isla":"Tenerife","vv":220,"plazas":973,"viv":3843,"pct":5.72,"pctPrin":7.34,"umbral":10.0,"margen":164,"estado":"margen"},{"m":"Tijarafe","isla":"La Palma","vv":185,"plazas":720,"viv":1622,"pct":11.41,"pctPrin":18.23,"umbral":20.0,"margen":139,"estado":"margen"},{"m":"El Rosario","isla":"Tenerife","vv":443,"plazas":2274,"viv":7771,"pct":5.7,"pctPrin":7.35,"umbral":10.0,"margen":334,"estado":"margen"},{"m":"Buenavista del Norte","isla":"Tenerife","vv":106,"plazas":493,"viv":2036,"pct":5.21,"pctPrin":5.76,"umbral":10.0,"margen":97,"estado":"margen"},{"m":"Arrecife","isla":"Lanzarote","vv":1189,"plazas":5044,"viv":23216,"pct":5.12,"pctPrin":5.89,"umbral":10.0,"margen":1132,"estado":"margen"},{"m":"Puntagorda","isla":"La Palma","vv":88,"plazas":307,"viv":878,"pct":10.02,"pctPrin":12.22,"umbral":20.0,"margen":87,"estado":"margen"},{"m":"El Sauzal","isla":"Tenerife","vv":165,"plazas":871,"viv":3417,"pct":4.83,"pctPrin":5.23,"umbral":10.0,"margen":176,"estado":"margen"},{"m":"Valverde","isla":"El Hierro","vv":241,"plazas":906,"viv":2498,"pct":9.65,"pctPrin":12.28,"umbral":20.0,"margen":258,"estado":"margen"},{"m":"Tazacorte","isla":"La Palma","vv":229,"plazas":860,"viv":2373,"pct":9.65,"pctPrin":12.05,"umbral":20.0,"margen":245,"estado":"margen"},{"m":"Güímar","isla":"Tenerife","vv":498,"plazas":2139,"viv":10431,"pct":4.77,"pctPrin":7.18,"umbral":10.0,"margen":545,"estado":"margen"},{"m":"Puerto del Rosario","isla":"Fuerteventura","vv":864,"plazas":3696,"viv":18134,"pct":4.76,"pctPrin":6.33,"umbral":10.0,"margen":949,"estado":"margen"},{"m":"Artenara","isla":"Gran Canaria","vv":29,"plazas":122,"viv":616,"pct":4.71,"pctPrin":5.53,"umbral":10.0,"margen":32,"estado":"margen"},{"m":"Frontera","isla":"El Hierro","vv":234,"plazas":926,"viv":2495,"pct":9.38,"pctPrin":15.21,"umbral":20.0,"margen":265,"estado":"margen"},{"m":"La Guancha","isla":"Tenerife","vv":102,"plazas":471,"viv":2194,"pct":4.65,"pctPrin":5.66,"umbral":10.0,"margen":117,"estado":"margen"},{"m":"Candelaria","isla":"Tenerife","vv":649,"plazas":2831,"viv":14069,"pct":4.61,"pctPrin":6.11,"umbral":10.0,"margen":757,"estado":"margen"},{"m":"Fasnia","isla":"Tenerife","vv":88,"plazas":396,"viv":1924,"pct":4.57,"pctPrin":7.2,"umbral":10.0,"margen":104,"estado":"margen"},{"m":"Tacoronte","isla":"Tenerife","vv":464,"plazas":2119,"viv":10746,"pct":4.32,"pctPrin":5.48,"umbral":10.0,"margen":610,"estado":"margen"},{"m":"Vega de San Mateo","isla":"Gran Canaria","vv":156,"plazas":889,"viv":3712,"pct":4.2,"pctPrin":5.49,"umbral":10.0,"margen":215,"estado":"margen"},{"m":"Fuencaliente de la Palma","isla":"La Palma","vv":86,"plazas":284,"viv":1052,"pct":8.17,"pctPrin":12.86,"umbral":20.0,"margen":124,"estado":"margen"},{"m":"La Aldea de San Nicolás","isla":"Gran Canaria","vv":148,"plazas":647,"viv":3700,"pct":4.0,"pctPrin":4.94,"umbral":10.0,"margen":222,"estado":"margen"},{"m":"Agüimes","isla":"Gran Canaria","vv":544,"plazas":2519,"viv":13975,"pct":3.89,"pctPrin":5.11,"umbral":10.0,"margen":853,"estado":"margen"},{"m":"Vallehermoso","isla":"La Gomera","vv":121,"plazas":488,"viv":1621,"pct":7.46,"pctPrin":9.02,"umbral":20.0,"margen":203,"estado":"margen"},{"m":"San Juan de la Rambla","isla":"Tenerife","vv":77,"plazas":350,"viv":2063,"pct":3.73,"pctPrin":4.6,"umbral":10.0,"margen":129,"estado":"margen"},{"m":"Alajeró","isla":"La Gomera","vv":112,"plazas":388,"viv":1645,"pct":6.81,"pctPrin":15.24,"umbral":20.0,"margen":217,"estado":"margen"},{"m":"Los Llanos de Aridane","isla":"La Palma","vv":656,"plazas":2350,"viv":10106,"pct":6.49,"pctPrin":8.28,"umbral":20.0,"margen":1365,"estado":"margen"},{"m":"Breña Baja","isla":"La Palma","vv":186,"plazas":671,"viv":2977,"pct":6.25,"pctPrin":9.37,"umbral":20.0,"margen":409,"estado":"margen"},{"m":"El Paso","isla":"La Palma","vv":227,"plazas":945,"viv":3635,"pct":6.24,"pctPrin":8.04,"umbral":20.0,"margen":500,"estado":"margen"},{"m":"Valsequillo de Gran Canaria","isla":"Gran Canaria","vv":125,"plazas":697,"viv":4307,"pct":2.9,"pctPrin":3.86,"umbral":10.0,"margen":305,"estado":"margen"},{"m":"Gáldar","isla":"Gran Canaria","vv":322,"plazas":1579,"viv":11142,"pct":2.89,"pctPrin":3.83,"umbral":10.0,"margen":792,"estado":"margen"},{"m":"Arafo","isla":"Tenerife","vv":75,"plazas":384,"viv":2707,"pct":2.77,"pctPrin":3.88,"umbral":10.0,"margen":195,"estado":"margen"},{"m":"Moya","isla":"Gran Canaria","vv":124,"plazas":710,"viv":4497,"pct":2.76,"pctPrin":4.16,"umbral":10.0,"margen":325,"estado":"margen"},{"m":"Las Palmas de Gran Canaria","isla":"Gran Canaria","vv":4845,"plazas":20193,"viv":182889,"pct":2.65,"pctPrin":3.34,"umbral":10.0,"margen":13443,"estado":"margen"},{"m":"Puntallana","isla":"La Palma","vv":67,"plazas":296,"viv":1327,"pct":5.05,"pctPrin":7.43,"umbral":20.0,"margen":198,"estado":"margen"},{"m":"La Orotava","isla":"Tenerife","vv":426,"plazas":2146,"viv":17000,"pct":2.51,"pctPrin":2.91,"umbral":10.0,"margen":1274,"estado":"margen"},{"m":"Valleseco","isla":"Gran Canaria","vv":47,"plazas":255,"viv":1892,"pct":2.48,"pctPrin":3.24,"umbral":10.0,"margen":142,"estado":"margen"},{"m":"San Sebastián de la Gomera","isla":"La Gomera","vv":252,"plazas":952,"viv":5088,"pct":4.95,"pctPrin":7.63,"umbral":20.0,"margen":765,"estado":"margen"},{"m":"Santa Cruz de Tenerife","isla":"Tenerife","vv":2327,"plazas":10486,"viv":96290,"pct":2.42,"pctPrin":2.96,"umbral":10.0,"margen":7302,"estado":"margen"},{"m":"La Victoria de Acentejo","isla":"Tenerife","vv":78,"plazas":395,"viv":3576,"pct":2.18,"pctPrin":2.47,"umbral":10.0,"margen":279,"estado":"margen"},{"m":"Los Realejos","isla":"Tenerife","vv":365,"plazas":1679,"viv":16735,"pct":2.18,"pctPrin":2.73,"umbral":10.0,"margen":1308,"estado":"margen"},{"m":"Santa Brígida","isla":"Gran Canaria","vv":168,"plazas":1027,"viv":7732,"pct":2.17,"pctPrin":2.6,"umbral":10.0,"margen":605,"estado":"margen"},{"m":"Garafía","isla":"La Palma","vv":49,"plazas":168,"viv":1298,"pct":3.78,"pctPrin":6.8,"umbral":20.0,"margen":210,"estado":"margen"},{"m":"Tegueste","isla":"Tenerife","vv":87,"plazas":400,"viv":4593,"pct":1.89,"pctPrin":2.29,"umbral":10.0,"margen":372,"estado":"margen"},{"m":"Santa Lucía de Tirajana","isla":"Gran Canaria","vv":543,"plazas":2537,"viv":28816,"pct":1.88,"pctPrin":2.29,"umbral":10.0,"margen":2338,"estado":"margen"},{"m":"Teror","isla":"Gran Canaria","vv":122,"plazas":720,"viv":6542,"pct":1.86,"pctPrin":2.55,"umbral":10.0,"margen":532,"estado":"margen"},{"m":"Villa de Mazo","isla":"La Palma","vv":97,"plazas":376,"viv":2611,"pct":3.72,"pctPrin":5.28,"umbral":20.0,"margen":425,"estado":"margen"},{"m":"Santa Cruz de la Palma","isla":"La Palma","vv":273,"plazas":1117,"viv":7390,"pct":3.69,"pctPrin":4.37,"umbral":20.0,"margen":1205,"estado":"margen"},{"m":"Santa María de Guía de Gran Canaria","isla":"Gran Canaria","vv":116,"plazas":635,"viv":6601,"pct":1.76,"pctPrin":2.32,"umbral":10.0,"margen":544,"estado":"margen"},{"m":"Telde","isla":"Gran Canaria","vv":761,"plazas":3743,"viv":46457,"pct":1.64,"pctPrin":2.06,"umbral":10.0,"margen":3884,"estado":"margen"},{"m":"San Cristóbal de La Laguna","isla":"Tenerife","vv":1151,"plazas":4882,"viv":71220,"pct":1.62,"pctPrin":2.0,"umbral":10.0,"margen":5971,"estado":"margen"},{"m":"Firgas","isla":"Gran Canaria","vv":51,"plazas":355,"viv":3369,"pct":1.51,"pctPrin":1.87,"umbral":10.0,"margen":285,"estado":"margen"},{"m":"Ingenio","isla":"Gran Canaria","vv":173,"plazas":845,"viv":12737,"pct":1.36,"pctPrin":1.64,"umbral":10.0,"margen":1100,"estado":"margen"},{"m":"Arucas","isla":"Gran Canaria","vv":208,"plazas":1098,"viv":16285,"pct":1.28,"pctPrin":1.6,"umbral":10.0,"margen":1420,"estado":"margen"},{"m":"Breña Alta","isla":"La Palma","vv":63,"plazas":258,"viv":3218,"pct":1.96,"pctPrin":2.32,"umbral":20.0,"margen":580,"estado":"margen"},{"m":"San Andrés y Sauces","isla":"La Palma","vv":45,"plazas":169,"viv":2352,"pct":1.91,"pctPrin":2.52,"umbral":20.0,"margen":425,"estado":"margen"},{"m":"Barlovento","isla":"La Palma","vv":18,"plazas":65,"viv":1245,"pct":1.45,"pctPrin":2.38,"umbral":20.0,"margen":231,"estado":"margen"},{"m":"Agulo","isla":"Gran Canaria","vv":1,"plazas":4,"viv":590,"pct":0.17,"pctPrin":0.23,"umbral":10.0,"margen":58,"estado":"margen"},{"m":"Agulo","isla":"Tenerife","vv":1,"plazas":3,"viv":590,"pct":0.17,"pctPrin":0.23,"umbral":10.0,"margen":58,"estado":"margen"},{"m":"Vallehermoso","isla":"Tenerife","vv":1,"plazas":4,"viv":1621,"pct":0.06,"pctPrin":0.07,"umbral":10.0,"margen":161,"estado":"margen"},{"m":"La Oliva","isla":"Gran Canaria","vv":1,"plazas":3,"viv":11253,"pct":0.01,"pctPrin":0.01,"umbral":10.0,"margen":1124,"estado":"margen"}]}</script><!-- END CUPO-DATA -->
+<script>
+(function(){
+  var el=document.getElementById('cupo-data');
+  if(!el){document.getElementById('upd').textContent='Datos no generados — ejecuta scripts/build-cupo.py';return;}
+  var D=JSON.parse(el.textContent);
+  var fmt=function(n){return n.toLocaleString('es-ES');};
+  document.getElementById('upd').textContent=
+    'Registro descargado el '+new Date(D.actualizado).toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})
+    +' · censo INE 2021 · '+fmt(D.totalVV)+' viviendas vacacionales cruzadas con '+fmt(D.totalViv)+' viviendas.';
+
+  var cards=[
+    ['<span class="v hot">'+D.superados+'</span>','municipios ya superan su tope legal'],
+    ['<span class="v">'+fmt(D.totalVV)+'</span>','viviendas vacacionales inscritas'],
+    ['<span class="v">'+(100*D.totalVV/D.totalViv).toFixed(1).replace('.',',')+'%</span>','del parque de viviendas del archipiélago'],
+    ['<span class="v">31/07/2027</span>','fecha límite de la comunicación previa para todos los titulares']
+  ];
+  document.getElementById('cards').innerHTML=cards.map(function(c){
+    return '<div class="card">'+c[0]+'<div class="k">'+c[1]+'</div></div>';}).join('');
+
+  document.querySelector('#tislas tbody').innerHTML=D.islas.map(function(i){
+    var hot=i.pct>=i.umbral;
+    return '<tr><td class="mun">'+i.isla+'</td><td class="n">'+fmt(i.vv)+'</td><td class="n">'+fmt(i.viv)
+      +'</td><td class="n"'+(hot?' style="color:var(--hot);font-weight:700"':'')+'>'+i.pct.toFixed(1).replace('.',',')+'%</td><td class="n">'
+      +i.umbral.toFixed(0)+'%</td><td class="n">'+(i.sup||'—')+'</td></tr>';}).join('');
+
+  var estTxt={superado:'Cupo superado',limite:'Al límite',margen:'Con margen'};
+  function row(o){
+    var satur=Math.min(100,100*o.pct/o.umbral);
+    var hot=o.estado==='superado';
+    return '<tr><td class="mun">'+o.m+'</td><td class="isla">'+o.isla+'</td>'
+      +'<td class="n">'+fmt(o.vv)+'</td><td class="n">'+fmt(o.viv)+'</td>'
+      +'<td class="n">'+o.pct.toFixed(1).replace('.',',')+'%</td>'
+      +'<td><div class="bar'+(hot?' hot':'')+'"><i style="width:'+satur.toFixed(1)+'%"></i>'
+      +(hot?'':'<em style="left:99%"></em>')+'</div></td>'
+      +'<td class="n"'+(o.margen<0?' style="color:var(--hot);font-weight:600"':'')+'>'
+      +(o.margen>=0?'+':'−')+fmt(Math.abs(o.margen))+'</td>'
+      +'<td><span class="est '+o.estado+'">'+estTxt[o.estado]+'</span></td></tr>';
+  }
+  var isla='', q='';
+  function paint(){
+    var list=D.municipios.filter(function(o){
+      return (!isla||o.isla===isla)&&(!q||o.m.toLowerCase().indexOf(q)>=0);});
+    document.querySelector('#tmun tbody').innerHTML=list.map(row).join('');
+    document.getElementById('count').textContent=list.length+' municipios, ordenados por saturación de su tope.';
+  }
+  document.querySelectorAll('.chip').forEach(function(ch){
+    ch.addEventListener('click',function(){
+      document.querySelectorAll('.chip').forEach(function(c){c.setAttribute('aria-pressed','false');});
+      ch.setAttribute('aria-pressed','true'); isla=ch.dataset.isla; paint();});});
+  document.getElementById('buscar').addEventListener('input',function(e){
+    q=e.target.value.trim().toLowerCase(); paint();});
+  paint();
+})();
+</script>
+</body>
+</html>
